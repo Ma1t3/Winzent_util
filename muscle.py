@@ -162,47 +162,48 @@ class WinzentMuscle(Muscle):
         while len(agents_with_started_negotiation) > 0:
             agent = agents_with_started_negotiation.pop(0)
             try:
-                await asyncio.wait_for(agent.negotiation_done, timeout=agent.time_to_sleep() * 2)
-            except asyncio.TimeoutError:
-                logger.error(f"{agent.aid} could not finish its negotiation in time. Result is set to zero.")
-                agent.result = {}
-            logger.debug(f"{agent.aid} negotiation done")
-            # restart unsuccessful negotiations
-            # only allow a restricted number of restarts
-            agent_result_sum = 0
-            for num in agent.result.values():
-                agent_result_sum += num
-            # check if negotiation fulfills requirements
-            if agent_result_sum < self.rounded_load_values[agent.aid]:
-                if number_of_restarted_negotiations > 0:
-                    # get sum of already negotiated values for this agent
-                    # negotiation was not fully successful, therefore restart
-                    agents_with_started_negotiation.append(agent)
-                    # restart the negotiation with the missing value
-                    await agent.start_negotiation(
-                        ts=time_span,
-                        value=self.rounded_load_values[agent.aid]
-                              - agent_result_sum,
-                    )
-                    logger.debug(
-                        f"{agent.aid} restarted negotiation for value "
-                        f"of {self.rounded_load_values[agent.aid] - agent_result_sum}"
-                    )
-                    number_of_restarted_negotiations -= 1
-                elif agent_result_sum > self.rounded_load_values[agent.aid]:
-                    logger.error(
-                        f"Too much power: {agent.aid} has with a sum of {agent_result_sum} instead of "
-                        f"{self.rounded_load_values[agent.aid]} from the result:{agent.result} "
-                        f"not a feasible solution"
-                    )
+                await asyncio.wait_for(agent.negotiation_done, timeout=5)
+                logger.debug(f"{agent.aid} negotiation done")
+                # restart unsuccessful negotiations
+                # only allow a restricted number of restarts
+                agent_result_sum = 0
+                for num in agent.result.values():
+                    agent_result_sum += num
+                # check if negotiation fulfills requirements
+                negotiation_successful = agent_result_sum >= self.rounded_load_values[agent.aid]
+                if not negotiation_successful:
+                    if number_of_restarted_negotiations > 0:
+                        # get sum of already negotiated values for this agent
+                        # negotiation was not fully successful, therefore restart
+                        agents_with_started_negotiation.append(agent)
+                        # restart the negotiation with the missing value
+                        await agent.start_negotiation(
+                            ts=time_span,
+                            value=self.rounded_load_values[agent.aid]
+                                  - agent_result_sum,
+                        )
+                        logger.debug(
+                            f"{agent.aid} restarted negotiation for value "
+                            f"of {self.rounded_load_values[agent.aid] - agent_result_sum}"
+                        )
+                        number_of_restarted_negotiations -= 1
+                    elif agent_result_sum > self.rounded_load_values[agent.aid]:
+                        logger.error(
+                            f"Too much power: {agent.aid} has with a sum of {agent_result_sum} instead of "
+                            f"{self.rounded_load_values[agent.aid]} from the result:{agent.result} "
+                            f"not a feasible solution"
+                        )
+                    else:
+                        agent.ethics_score = self.calculate_new_ethics_score(negotiation_successful, agent.ethics_score)
+                        # agents_ethics_score_list[agent.aid] = [False, agent.ethics_score]
+                        self.save_ethics_score_development(self.ethics_score_list, agent, negotiation_successful)
                 else:
-                    agent.ethics_score = self.calculate_new_ethics_score(False, agent.ethics_score)
-                    # agents_ethics_score_list[agent.aid] = [False, agent.ethics_score]
-                    self.save_ethics_score_development(self.ethics_score_list, agent, False)
-            else:
-                agent.ethics_score = self.calculate_new_ethics_score(True, agent.ethics_score)
-                # agents_ethics_score_list[agent.aid] = [True, agent.ethics_score]
-                self.save_ethics_score_development(self.ethics_score_list, agent, True)
+                    agent.ethics_score = self.calculate_new_ethics_score(negotiation_successful, agent.ethics_score)
+                    # agents_ethics_score_list[agent.aid] = [True, agent.ethics_score]
+                    self.save_ethics_score_development(self.ethics_score_list, agent, negotiation_successful)
+            except asyncio.TimeoutError:
+                logger.error(f"{agent.aid} could not finish its negotiation in time. No restart permission can be given.")
+                agent.ethics_score = self.calculate_new_ethics_score(False, agent.ethics_score)
         logger.info(f"ethics_scores -->{self.ethics_score_list}")
         self.reset_ethics_score_list()
 
@@ -433,4 +434,3 @@ class WinzentMuscle(Muscle):
     def prepare_model(self):
         """Emtpy because Winzent does not have a trained model"""
         pass
-
