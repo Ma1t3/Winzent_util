@@ -162,7 +162,7 @@ class WinzentMuscle(Muscle):
         while len(agents_with_started_negotiation) > 0:
             agent = agents_with_started_negotiation.pop(0)
             try:
-                await asyncio.wait_for(agent.negotiation_done, timeout=5)
+                await asyncio.wait_for(agent.negotiation_done, timeout=agent.time_to_sleep() * 2)
             except asyncio.TimeoutError:
                 logger.error(f"{agent.aid} could not finish its negotiation in time. Result is set to zero.")
                 agent.result = {}
