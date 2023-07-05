@@ -17,7 +17,7 @@ class WinzentMuscle(Muscle):
     def __init__(self, broker_uri, brain_uri, uid, brain_id, path, **params):
         super().__init__(broker_uri, brain_uri, uid, brain_id, path)
         self.step_size = params.get("step_size", 900)
-        self.end = params.get("end", 24 * 60 * 60)
+        self.end = eval(params.get("end", 24 * 60 * 60))
         self.ttl = params.get("ttl", 80)
         self.time_to_sleep = params.get("time_to_sleep", 10)
         self.factor_mw = params.get("factor_mw", 1000000)
@@ -56,6 +56,9 @@ class WinzentMuscle(Muscle):
         total_amount_of_steps = self.end / self.step_size
         self.sub_tier_size = 1.0 / total_amount_of_steps
         self.decay_rate = self.sub_tier_size / total_amount_of_steps
+        self.reset_ethics_score_list()
+
+    def reset_ethics_score_list(self):
         for key in self.ethics_score_config.keys():
             self.ethics_score_list[key] = [0.0, 0, 0]
 
@@ -200,8 +203,8 @@ class WinzentMuscle(Muscle):
                 agent.ethics_score = self.calculate_new_ethics_score(True, agent.ethics_score)
                 # agents_ethics_score_list[agent.aid] = [True, agent.ethics_score]
                 self.save_ethics_score_development(self.ethics_score_list, agent, True)
-        logger.info(self.ethics_score_list)
-        self.ethics_score_list.clear()
+        logger.info(f"ethics_scores -->{self.ethics_score_list}")
+        self.reset_ethics_score_list()
 
     def save_negotiated_solution_by_load(self):
         self.final_solution = {}
@@ -285,6 +288,7 @@ class WinzentMuscle(Muscle):
                     time_to_sleep=self.time_to_sleep,
                     grid_json=grid_json,
                     send_message_paths=self.send_message_paths,
+                    ethics_score_config = self.ethics_score_config
                 )
                 await self.winzent_mas.create_winzent_agents()
                 self.winzent_mas.build_topology()
@@ -384,7 +388,7 @@ class WinzentMuscle(Muscle):
         for tier in ethics_score_tiers:
             if tier <= agent.ethics_score < tier + 1.0:
                 ethics_score_list[tier][0] = ethics_score_list[tier][0] + agent.ethics_score
-                ethics_score_list[tier][0] += 1
+                ethics_score_list[tier][2] += 1
                 if not success:
                     ethics_score_list[tier][1] += 1
 
