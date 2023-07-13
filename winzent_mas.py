@@ -145,7 +145,7 @@ class WinzentMAS:
             ttl=self.ttl,
             time_to_sleep=self.time_to_sleep,
             send_message_paths=self.send_message_paths,
-            ethics_score=self._assign_ethics_score(self._net[elem_type].at[index,"name"])
+            ethics_score=self._assign_ethics_score(self._net[elem_type].at[index,"name"], index)
         )
 
     def _get_connected_buses(self, net, elem_type, index):
