@@ -258,6 +258,9 @@ class WinzentMuscle(Muscle):
                             "avoid the experiment from crashing."
                         )
                     actuator(value)
+                    if agent.aid in self.winzent_mas.most_ethical_agents:
+                        logger.info(f"{agent.aid} has produced {self.final_solution[agent.aid]}"
+                                    f" of renewable energy this step.")
                 else:
                     logger.debug("actuator set to zero")
                     actuator(0)
