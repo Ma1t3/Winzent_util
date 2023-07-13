@@ -65,6 +65,7 @@ class WinzentMAS:
         # agent_id: winzent_agent
         self.aid_agent_mapping: Dict[str, WinzentAgentWithInfo] = {}
         self.graph = nx.DiGraph()
+        self.most_ethical_agents = []
 
     async def create_winzent_agents(self):
         """Creates all WinzentAgents for the elements in the power grid."""
@@ -192,12 +193,11 @@ class WinzentMAS:
         else:
             return 2
 
-
-    def _assign_ethics_score(self, name):
+    def _assign_ethics_score(self, name, index):
         ethics_values = list(self.ethics_score_config.keys())
-        # print("the ethics values " + str(ethics_values))
         for value in ethics_values:
-            # print("this: " + str(self.ethics_score_config[value]) + " has to include this: " + name)
             if any(string in name for string in self.ethics_score_config[value]):
+                if value == max(ethics_values):
+                    self.most_ethical_agents.append("agent" + str(index))
                 return value
         return min(ethics_values)
