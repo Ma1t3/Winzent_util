@@ -251,6 +251,7 @@ class WinzentMuscle(Muscle):
                         f"final solution: {self.final_solution[agent.aid]} and initial generator values {self.initial_generator_values[agent.aid]}; actuator value = {value}"
                     )
                     if value > 1:
+                        logger.info(f"final solution: {self.final_solution[agent.aid]} and initial generator values {self.initial_generator_values[agent.aid]}; actuator value = {value}")
                         value = 1
                         logger.info(
                             "WARNING: Invalid Winzent result detected."

@@ -7,15 +7,14 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import pandapower as pp
 from mango.core.container import Container
-from mango_library.negotiation.winzent.winzent_classic_agent import WinzentAgent
+from mango_library.negotiation.winzent.winzent_classic_agent import WinzentClassicAgent
 from mango_library.negotiation.winzent.winzent_simple_ethical_agent import WinzentSimpleEthicalAgent
-from mango_library.negotiation.winzent.winzent_ethical_agent import WinzentEthicalAgent
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 logger = logging.getLogger(__name__)
 
 
-class WinzentAgentWithInfo(WinzentAgent):
+class WinzentAgentWithInfo(WinzentSimpleEthicalAgent):
     """WinzentAgent with additional information about its corresponding element in the power grid"""
 
     def __init__(
