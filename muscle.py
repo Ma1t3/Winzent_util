@@ -204,6 +204,7 @@ class WinzentMuscle(Muscle):
             except asyncio.TimeoutError:
                 logger.error(f"{agent.aid} could not finish its negotiation in time. No restart permission can be given.")
                 agent.ethics_score = self.calculate_new_ethics_score(False, agent.ethics_score)
+                self.save_ethics_score_development(self.ethics_score_list, agent, False)
         logger.info(f"ethics_scores -->{self.ethics_score_list}")
         self.reset_ethics_score_list()
 
