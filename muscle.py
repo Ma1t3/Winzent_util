@@ -260,8 +260,7 @@ class WinzentMuscle(Muscle):
                         )
                     actuator(value)
                     if agent.aid in self.winzent_mas.most_ethical_agents:
-                        logger.info(f"{agent.aid} has produced {self.final_solution[agent.aid]}"
-                                    f" of renewable energy this step.")
+                        logger.info(f"{agent.aid} has produced renewable energy: {self.final_solution[agent.aid]}")
                 else:
                     logger.debug("actuator set to zero")
                     actuator(0)
@@ -348,7 +347,7 @@ class WinzentMuscle(Muscle):
             actual_value += i
         logger.info(
             f"Flexibility of the network: (0, {network_flexibility}) [{network_flexibility / self.factor_mw}] \n"
-            f"Needed Loads: {needed_load} [{needed_load / self.factor_mw}] \n "
+            f"Needed Loads: {needed_load} [{needed_load / self.factor_mw}] \n"
             f"Actual negotiated value: {actual_value} [{actual_value / self.factor_mw}] \n"
             f"Messages sent: {self.messages_sent_in_step} \n"
             f"Runtime: {runtime}"
