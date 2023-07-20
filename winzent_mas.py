@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import pandapower as pp
 from mango.core.container import Container
-from mango_library.negotiation.winzent.winzent_classic_agent import WinzentClassicAgent
+from mango_library.negotiation.winzent.winzent_base_agent import WinzentBaseAgent
 from mango_library.negotiation.winzent.winzent_simple_ethical_agent import WinzentSimpleEthicalAgent
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -194,6 +194,7 @@ class WinzentMAS:
 
     def _assign_ethics_score(self, name, index):
         ethics_values = list(self.ethics_score_config.keys())
+        print(f"agent{index} is {name}")
         for value in ethics_values:
             if any(string in name for string in self.ethics_score_config[value]):
                 if value == max(ethics_values):
