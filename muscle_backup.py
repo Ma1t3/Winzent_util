@@ -17,18 +17,19 @@ class WinzentMuscle(Muscle):
     def __init__(self, broker_uri, brain_uri, uid, brain_id, path, **params):
         super().__init__(broker_uri, brain_uri, uid, brain_id, path)
         self.step_size = params.get("step_size", 900)
-        self.end = eval(params.get("end", 24*60*60))
+        self.end = eval(params.get("end", 24 * 60 * 60))
         self.ttl = params.get("ttl", 80)
         self.time_to_sleep = params.get("time_to_sleep", 10)
         self.factor_mw = params.get("factor_mw", 1000000)
         self.number_of_restartable_negotiations = params.get(
             "number_of_restartable_negotiations", 40
         )
-        self.send_message_paths = params.get("send_message_paths", True)
         self.ethics_score_config = params.get("ethics_score_config", None)
+        self.send_message_paths = params.get("send_message_paths", True)
 
         self.decay_rate = 0
         self.sub_tier_size = 0
+        self.ethics_score_list = {}
         self.calc_ethics_score_params()
 
         self.initialized = False
@@ -55,11 +56,16 @@ class WinzentMuscle(Muscle):
         total_amount_of_steps = self.end / self.step_size
         self.sub_tier_size = 1.0 / total_amount_of_steps
         self.decay_rate = self.sub_tier_size / total_amount_of_steps
+        self.reset_ethics_score_list()
+
+    def reset_ethics_score_list(self):
+        for key in self.ethics_score_config.keys():
+            self.ethics_score_list[key] = [0.0, 0, 0]
 
     def create_sensor_and_actuator_mapping(
-        self,
-        sensors: List[SensorInformation],
-        actuators: List[ActuatorInformation],
+            self,
+            sensors: List[SensorInformation],
+            actuators: List[ActuatorInformation],
     ):
         for sensor in sensors:
             (
@@ -153,52 +159,54 @@ class WinzentMuscle(Muscle):
             "unsuccessful negotiations"
         )
         # waiting for all negotiations to finish
-        # agents_ethics_score_list = {}
-        ethics_score_list = {1.0:[0.0,0,0], 2.0:[0.0,0,0], 3.0:[0.0,0,0]}
         while len(agents_with_started_negotiation) > 0:
             agent = agents_with_started_negotiation.pop(0)
             try:
-                await asyncio.wait_for(agent.negotiation_done, timeout=5)
-            except asyncio.TimeoutError:
-                logger.error(f"{agent.aid} could not finish its negotiation in time. Result is set to zero.")
-                agent.result = {}
-            logger.debug(f"{agent.aid} negotiation done")
-            # restart unsuccessful negotiations
-            # only allow a restricted number of restarts
-            agent_result_sum = 0
-            for num in agent.result.values():
-                agent_result_sum += num
-            # check if negotiation fulfills requirements
-            if agent_result_sum < self.rounded_load_values[agent.aid]:
-                if number_of_restarted_negotiations > 0:
-                    # get sum of already negotiated values for this agent
-                    # negotiation was not fully successful, therefore restart
-                    agents_with_started_negotiation.append(agent)
-                    # restart the negotiation with the missing value
-                    await agent.start_negotiation(
-                        ts=time_span,
-                        value=self.rounded_load_values[agent.aid]
-                        - agent_result_sum,
-                    )
-                    logger.debug(
-                        f"{agent.aid} restarted negotiation for value "
-                        f"of {self.rounded_load_values[agent.aid] - agent_result_sum}"
-                    )
-                    number_of_restarted_negotiations -= 1
-                elif agent_result_sum > self.rounded_load_values[agent.aid]:
-                    logger.error(
-                        f"Too much power: {agent.aid} has with a sum of {agent_result_sum} instead of "
-                        f"{self.rounded_load_values[agent.aid]} from the result:{agent.result} "
-                        f"not a feasible solution"
-                    )
+                await asyncio.wait_for(agent.negotiation_done, timeout=agent.time_to_sleep * 2)
+                logger.debug(f"{agent.aid} negotiation done")
+                # restart unsuccessful negotiations
+                # only allow a restricted number of restarts
+                agent_result_sum = 0
+                for num in agent.result.values():
+                    agent_result_sum += num
+                # check if negotiation fulfills requirements
+                negotiation_successful = agent_result_sum >= self.rounded_load_values[agent.aid]
+                if not negotiation_successful:
+                    if number_of_restarted_negotiations > 0:
+                        # get sum of already negotiated values for this agent
+                        # negotiation was not fully successful, therefore restart
+                        agents_with_started_negotiation.append(agent)
+                        # restart the negotiation with the missing value
+                        await agent.start_negotiation(
+                            ts=time_span,
+                            value=self.rounded_load_values[agent.aid]
+                                  - agent_result_sum,
+                        )
+                        logger.debug(
+                            f"{agent.aid} restarted negotiation for value "
+                            f"of {self.rounded_load_values[agent.aid] - agent_result_sum}"
+                        )
+                        number_of_restarted_negotiations -= 1
+                    elif agent_result_sum > self.rounded_load_values[agent.aid]:
+                        logger.error(
+                            f"Too much power: {agent.aid} has with a sum of {agent_result_sum} instead of "
+                            f"{self.rounded_load_values[agent.aid]} from the result:{agent.result} "
+                            f"not a feasible solution"
+                        )
+                    else:
+                        agent.ethics_score = self.calculate_new_ethics_score(negotiation_successful, agent.ethics_score)
+                        # agents_ethics_score_list[agent.aid] = [False, agent.ethics_score]
+                        self.save_ethics_score_development(self.ethics_score_list, agent, negotiation_successful)
                 else:
-                    agent.ethics_score = self.calculate_new_ethics_score(False, agent.ethics_score)
-                    self.save_ethics_score_development(ethics_score_list, agent, False)
-            else:
-                agent.ethics_score = self.calculate_new_ethics_score(True, agent.ethics_score)
-                self.save_ethics_score_development(ethics_score_list, agent, True)
-        logger.info(f"ethics_scores -->{ethics_score_list}")
-
+                    agent.ethics_score = self.calculate_new_ethics_score(negotiation_successful, agent.ethics_score)
+                    # agents_ethics_score_list[agent.aid] = [True, agent.ethics_score]
+                    self.save_ethics_score_development(self.ethics_score_list, agent, negotiation_successful)
+            except asyncio.TimeoutError:
+                logger.error(f"{agent.aid} could not finish its negotiation in time. No restart permission can be given.")
+                agent.ethics_score = self.calculate_new_ethics_score(False, agent.ethics_score)
+                self.save_ethics_score_development(self.ethics_score_list, agent, False)
+        logger.info(f"ethics_scores -->{self.ethics_score_list}")
+        self.reset_ethics_score_list()
 
     def save_negotiated_solution_by_load(self):
         self.final_solution = {}
@@ -227,23 +235,24 @@ class WinzentMuscle(Muscle):
         logger.debug("final solution of what winzent has negotiated")
         logger.debug(self.final_solution)
         for actuator, (actuator_type, agent) in zip(
-            actuators_available, self.actuator_mapping
+                actuators_available, self.actuator_mapping
         ):
             if actuator_type == "scaling" and agent is not None:
                 logger.debug(self.final_solution)
                 if (
-                    agent.aid in self.final_solution
-                    and self.initial_generator_values[agent.aid] > 0
+                        agent.aid in self.final_solution
+                        and self.initial_generator_values[agent.aid] > 0
                 ):
 
                     value = (
-                        self.final_solution[agent.aid]
-                        / self.initial_generator_values[agent.aid]
+                            self.final_solution[agent.aid]
+                            / self.initial_generator_values[agent.aid]
                     )
                     logger.debug(
                         f"final solution: {self.final_solution[agent.aid]} and initial generator values {self.initial_generator_values[agent.aid]}; actuator value = {value}"
                     )
                     if value > 1:
+                        logger.info(f"final solution: {self.final_solution[agent.aid]} and initial generator values {self.initial_generator_values[agent.aid]}; actuator value = {value}")
                         value = 1
                         logger.info(
                             "WARNING: Invalid Winzent result detected."
@@ -251,6 +260,15 @@ class WinzentMuscle(Muscle):
                             "avoid the experiment from crashing."
                         )
                     actuator(value)
+<<<<<<< HEAD
+                    if agent.aid in self.winzent_mas.most_ethical_agents:
+                        logger.info(f"{agent.aid} has produced renewable energy: {self.final_solution[agent.aid]}")
+=======
+                    for key, value_list in winzent_mas.agent_types.items():
+                        if agent.aid in value_list:
+                            logger.info(f"{agent.aid} has produced {self.final_solution[agent.aid]}"
+                                    f" of {key} energy this step.")
+>>>>>>> refs/remotes/origin/main
                 else:
                     logger.debug("actuator set to zero")
                     actuator(0)
@@ -266,7 +284,7 @@ class WinzentMuscle(Muscle):
         self.set_actuator_setpoints(actuators)
 
     async def run_winzent(
-        self, sensors, actuators_available, is_terminal=False
+            self, sensors, actuators_available, is_terminal=False
     ):
         logger.info("Winzent next step running")
         grid_json = WinzentSensorActuatorUtil.get_grid_json_from_sensors(
@@ -337,7 +355,7 @@ class WinzentMuscle(Muscle):
             actual_value += i
         logger.info(
             f"Flexibility of the network: (0, {network_flexibility}) [{network_flexibility / self.factor_mw}] \n"
-            f"Needed Loads: {needed_load} [{needed_load / self.factor_mw}] \n "
+            f"Needed Loads: {needed_load} [{needed_load / self.factor_mw}] \n"
             f"Actual negotiated value: {actual_value} [{actual_value / self.factor_mw}] \n"
             f"Messages sent: {self.messages_sent_in_step} \n"
             f"Runtime: {runtime}"
@@ -356,7 +374,7 @@ class WinzentMuscle(Muscle):
         logger.info(f"Winzent step {self.time} finished")
 
     def propose_actions(
-        self, sensors, actuators_available, is_terminal=False
+            self, sensors, actuators_available, is_terminal=False
     ) -> tuple:
         """The state of the environment (sensor inputs) is given to winzent, which calculates
         a solution and after a successful run in winzent the solution is sent to the environment
@@ -377,6 +395,15 @@ class WinzentMuscle(Muscle):
             {},
         )
 
+    def save_ethics_score_development(self, ethics_score_list, agent, success):
+        ethics_score_tiers = list(ethics_score_list.keys())
+        for tier in ethics_score_tiers:
+            if tier <= agent.ethics_score < tier + 1.0:
+                ethics_score_list[tier][0] = ethics_score_list[tier][0] + agent.ethics_score
+                ethics_score_list[tier][2] += 1
+                if not success:
+                    ethics_score_list[tier][1] += 1
+
     def calculate_new_ethics_score(self, success, ethics_score):
         max_len_of_ethics_score = "{:." + str(len(str(self.decay_rate).replace('.', ''))) + "f}"
         # min_len_of_ethics_score = "{:." + str(len(str(sub_tier_size).replace('.', ''))) + "f}"
@@ -393,7 +420,8 @@ class WinzentMuscle(Muscle):
             temp = math.floor(ethics_score * 10) / 10
             if (math.floor(float(temp)) + 1) > (float(temp) + self.sub_tier_size):
                 if ethics_score == initial_ethics_score:
-                    return float(max_len_of_ethics_score.format(initial_ethics_score + self.sub_tier_size - self.decay_rate))
+                    return float(
+                        max_len_of_ethics_score.format(initial_ethics_score + self.sub_tier_size - self.decay_rate))
                 return float(max_len_of_ethics_score.format(current_tier_high + self.sub_tier_size - self.decay_rate))
             else:
                 return float(max_len_of_ethics_score.format((math.floor(float(ethics_score)) + 1) - self.decay_rate))
@@ -403,15 +431,6 @@ class WinzentMuscle(Muscle):
                 return current_tier_low
             else:
                 return temp_ethics_score
-
-    def save_ethics_score_development(self, ethics_score_list, agent, success):
-        ethics_score_tiers = list(ethics_score_list.keys())
-        for tier in ethics_score_tiers:
-            if tier <= agent.ethics_score < tier + 1.0:
-                ethics_score_list[tier][0] = ethics_score_list[tier][0] + agent.ethics_score
-                ethics_score_list[tier][2] += 1
-                if not success:
-                    ethics_score_list[tier][1] += 1
 
     def setup(self):
         pass
@@ -426,4 +445,3 @@ class WinzentMuscle(Muscle):
     def prepare_model(self):
         """Emtpy because Winzent does not have a trained model"""
         pass
-
