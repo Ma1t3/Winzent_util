@@ -7,19 +7,14 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import pandapower as pp
 from mango.core.container import Container
-<<<<<<< HEAD
 from mango_library.negotiation.winzent.winzent_base_agent import WinzentBaseAgent
 from mango_library.negotiation.winzent.winzent_simple_ethical_agent import WinzentSimpleEthicalAgent
-=======
-
-from mango_library.negotiation.winzent.winzent_classic_agent import WinzentClassicAgent
->>>>>>> refs/remotes/origin/main
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 logger = logging.getLogger(__name__)
 
 
-class WinzentAgentWithInfo(WinzentClassicAgent):
+class WinzentAgentWithInfo(WinzentBaseAgent):
     def __init__(
             self,
             container,
@@ -28,6 +23,7 @@ class WinzentAgentWithInfo(WinzentClassicAgent):
             ttl,
             time_to_sleep,
             send_message_paths,
+            ethics_score
     ):
         super().__init__(
             container,
@@ -60,6 +56,7 @@ class WinzentMAS:
         self.aid_agent_mapping: Dict[str, WinzentAgentWithInfo] = {}
         self.graph = nx.DiGraph()
         self.agent_types = {}
+        self.index_zero_counter = 0
         self.set_agent_types()
 
     async def create_winzent_agents(self):
@@ -89,7 +86,12 @@ class WinzentMAS:
         type_list = []
         for value_list in self.ethics_score_config.values():
             type_list.extend(value_list)
-        self.agent_types = dict.fromkeys(type_list, [])
+        self.agent_types = {key: [] for key in type_list}
+        del self.agent_types['']
+        del self.agent_types['Klinikum']
+        del self.agent_types['Households']
+        self.agent_types['gas'] = []
+        print(f"agent type list done: {self.agent_types}")
 
     async def shutdown(self):
         for elem_type in WinzentMAS.ELEMENT_TYPES_WITH_AGENTS:
@@ -183,11 +185,21 @@ class WinzentMAS:
     def _assign_ethics_score(self, name, index):
         ethics_values = list(self.ethics_score_config.keys())
         print(f"agent{index} is {name}")
+        if index == 0:
+            self.index_zero_counter += 1
         for value in ethics_values:
-            for string in self.ethics_score_config[value]:
+            for string in list(self.agent_types.keys()):
                 if string in name:
-                    self.agent_types[string].append("agent" + str(index))
-                    return value
-            if any(string in name for string in self.ethics_score_config[value]):
-                return value
+                    if self.index_zero_counter == 1:
+                        print(f"string: {string}")
+                        print(f"name: {name}")
+                        print(f"agent{index} added")
+                        self.agent_types[string].append("agent" + str(index))
+                        print(self.agent_types)
+                        self.agent_types[string] = list(set(self.agent_types[string]))
+        if any(string in name for string in self.ethics_score_config[value]):
+            return value
         return min(ethics_values)
+
+
+    def _add_agent_types():
