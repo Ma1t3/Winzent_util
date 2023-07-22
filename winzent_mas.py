@@ -33,6 +33,7 @@ class WinzentAgentWithInfo(WinzentBaseAgent):
         )
         self.elem_type = elem_type
         self.index = index
+        self.ethics_score = ethics_score
 
 
 class WinzentMAS:
@@ -69,6 +70,7 @@ class WinzentMAS:
                 self.winzent_agents[elem_type][index] = winzent_agent
                 self.aid_agent_mapping[winzent_agent.aid] = winzent_agent
                 self.graph.add_node(winzent_agent.aid)
+                print(f"initial score:{winzent_agent.ethics_score}")
 
     def build_topology(self):
         for elem_type in WinzentMAS.ELEMENT_TYPES_WITH_AGENTS:
@@ -190,19 +192,22 @@ class WinzentMAS:
             if any(string in name for string in self.ethics_score_config[value]):
                 print(f"{name}")
                 print(f"{self.ethics_score_config[value]}")
+                print(f"returning {value}")
                 return value
+        print("returning 1.0")
         return min(ethics_values)
 
 
     def _add_agent_types(self, name, index):
+        if index == 0:
+            self.index_zero_counter += 1
         for string in list(self.agent_types.keys()):
-            if index == 0:
-                self.index_zero_counter += 1
             if string in name:
                 if self.index_zero_counter == 1:
-                    # print(f"string: {string}")
-                    # print(f"name: {name}")
-                    # print(f"agent{index} added")
+                    print(f"string: {string}")
+                    print(f"name: {name}")
+                    print(f"agent{index} added")
                     self.agent_types[string].append("agent" + str(index))
-                    # print(self.agent_types)
+                    print(self.agent_types)
                     self.agent_types[string] = list(set(self.agent_types[string]))
+                    return
