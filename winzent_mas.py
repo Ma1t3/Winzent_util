@@ -183,10 +183,13 @@ class WinzentMAS:
             self._add_neighbors(agent, bus_agent)
 
     def _assign_ethics_score(self, name, index):
+        self._add_agent_types(name, index)
         ethics_values = list(self.ethics_score_config.keys())
         print(f"agent{index} is {name}")
         for value in ethics_values:
             if any(string in name for string in self.ethics_score_config[value]):
+                print(f"{name}")
+                print(f"{self.ethics_score_config[value]}")
                 return value
         return min(ethics_values)
 
@@ -197,9 +200,9 @@ class WinzentMAS:
                 self.index_zero_counter += 1
             if string in name:
                 if self.index_zero_counter == 1:
-                    print(f"string: {string}")
-                    print(f"name: {name}")
-                    print(f"agent{index} added")
+                    # print(f"string: {string}")
+                    # print(f"name: {name}")
+                    # print(f"agent{index} added")
                     self.agent_types[string].append("agent" + str(index))
-                    print(self.agent_types)
+                    # print(self.agent_types)
                     self.agent_types[string] = list(set(self.agent_types[string]))
