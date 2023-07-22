@@ -185,21 +185,21 @@ class WinzentMAS:
     def _assign_ethics_score(self, name, index):
         ethics_values = list(self.ethics_score_config.keys())
         print(f"agent{index} is {name}")
-        if index == 0:
-            self.index_zero_counter += 1
         for value in ethics_values:
-            for string in list(self.agent_types.keys()):
-                if string in name:
-                    if self.index_zero_counter == 1:
-                        print(f"string: {string}")
-                        print(f"name: {name}")
-                        print(f"agent{index} added")
-                        self.agent_types[string].append("agent" + str(index))
-                        print(self.agent_types)
-                        self.agent_types[string] = list(set(self.agent_types[string]))
-        if any(string in name for string in self.ethics_score_config[value]):
-            return value
+            if any(string in name for string in self.ethics_score_config[value]):
+                return value
         return min(ethics_values)
 
 
-    def _add_agent_types():
+    def _add_agent_types(self, name, index):
+        for string in list(self.agent_types.keys()):
+            if index == 0:
+                self.index_zero_counter += 1
+            if string in name:
+                if self.index_zero_counter == 1:
+                    print(f"string: {string}")
+                    print(f"name: {name}")
+                    print(f"agent{index} added")
+                    self.agent_types[string].append("agent" + str(index))
+                    print(self.agent_types)
+                    self.agent_types[string] = list(set(self.agent_types[string]))
