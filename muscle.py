@@ -117,7 +117,6 @@ class WinzentMuscle(Muscle):
                         min_p=0,
                         max_p=math.floor(flexibility),
                     )
-                    print(f"{agent.ethics_score}")
                 elif agent.elem_type == "load" and sensor_type == "p_mw":
                     self.rounded_load_values[agent.aid] = math.ceil(
                         sensor.sensor_value * self.factor_mw
@@ -402,7 +401,6 @@ class WinzentMuscle(Muscle):
 
     def calculate_new_ethics_score(self, success, ethics_score):
         max_len_of_ethics_score = "{:." + str(len(str(self.decay_rate).replace('.', ''))) + "f}"
-        # min_len_of_ethics_score = "{:." + str(len(str(sub_tier_size).replace('.', ''))) + "f}"
         initial_ethics_score = float(math.floor(ethics_score))
         str_eth_score = list(str(ethics_score))
         str_eth_score[0] = "0"

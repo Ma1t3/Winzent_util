@@ -93,7 +93,6 @@ class WinzentMAS:
         del self.agent_types['Klinikum']
         del self.agent_types['Households']
         self.agent_types['gas'] = []
-        print(f"agent type list done: {self.agent_types}")
 
     async def shutdown(self):
         for elem_type in WinzentMAS.ELEMENT_TYPES_WITH_AGENTS:
@@ -187,14 +186,9 @@ class WinzentMAS:
     def _assign_ethics_score(self, name, index):
         self._add_agent_types(name, index)
         ethics_values = list(self.ethics_score_config.keys())
-        print(f"agent{index} is {name}")
         for value in ethics_values:
             if any(string in name for string in self.ethics_score_config[value]):
-                print(f"{name}")
-                print(f"{self.ethics_score_config[value]}")
-                print(f"returning {value}")
                 return value
-        print("returning 1.0")
         return min(ethics_values)
 
 
@@ -204,9 +198,6 @@ class WinzentMAS:
         for string in list(self.agent_types.keys()):
             if string in name:
                 if self.index_zero_counter == 1:
-                    print(f"string: {string}")
-                    print(f"name: {name}")
-                    print(f"agent{index} added")
                     self.agent_types[string].append("agent" + str(index))
                     print(self.agent_types)
                     self.agent_types[string] = list(set(self.agent_types[string]))
