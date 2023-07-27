@@ -195,11 +195,9 @@ class WinzentMuscle(Muscle):
                         )
                     else:
                         agent.ethics_score = self.calculate_new_ethics_score(negotiation_successful, agent.ethics_score)
-                        # agents_ethics_score_list[agent.aid] = [False, agent.ethics_score]
                         self.save_ethics_score_development(self.ethics_score_list, agent, negotiation_successful)
                 else:
                     agent.ethics_score = self.calculate_new_ethics_score(negotiation_successful, agent.ethics_score)
-                    # agents_ethics_score_list[agent.aid] = [True, agent.ethics_score]
                     self.save_ethics_score_development(self.ethics_score_list, agent, negotiation_successful)
             except asyncio.TimeoutError:
                 logger.error(f"{agent.aid} could not finish its negotiation in time. No restart permission can be given.")
@@ -263,7 +261,7 @@ class WinzentMuscle(Muscle):
                     actuator(value)
                     for key, value_list in self.winzent_mas.agent_types.items():
                         if agent.aid in value_list:
-                            print(f"PRODUCED {self.final_solution[agent.aid]} {key} {value} {agent.aid}")
+                            logger.info(f"PRODUCED {self.final_solution[agent.aid]} {key} {value} {agent.aid}")
                 else:
                     logger.debug("actuator set to zero")
                     actuator(0)
@@ -392,6 +390,8 @@ class WinzentMuscle(Muscle):
 
     def save_ethics_score_development(self, ethics_score_list, agent, success):
         ethics_score_tiers = list(ethics_score_list.keys())
+        if success == False and agent.ethics_score >= 3.0:
+            logger.info(f"{agent.aid}: High priority target not supplied.\n Solution is {agent.result} and target supply is {self.rounded_load_values[agent.aid]}")
         for tier in ethics_score_tiers:
             if tier <= agent.ethics_score < tier + 1.0:
                 ethics_score_list[tier][0] = ethics_score_list[tier][0] + agent.ethics_score

@@ -70,7 +70,7 @@ class WinzentMAS:
                 self.winzent_agents[elem_type][index] = winzent_agent
                 self.aid_agent_mapping[winzent_agent.aid] = winzent_agent
                 self.graph.add_node(winzent_agent.aid)
-                print(f"initial score:{winzent_agent.ethics_score}")
+                logger.debug(f"initial score:{winzent_agent.ethics_score}")
 
     def build_topology(self):
         for elem_type in WinzentMAS.ELEMENT_TYPES_WITH_AGENTS:
@@ -199,6 +199,5 @@ class WinzentMAS:
             if string in name:
                 if self.index_zero_counter == 1:
                     self.agent_types[string].append("agent" + str(index))
-                    print(self.agent_types)
                     self.agent_types[string] = list(set(self.agent_types[string]))
                     return
