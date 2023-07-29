@@ -112,14 +112,12 @@ class WinzentMuscle(Muscle):
                         flexibility = sensor.sensor_value * self.factor_mw
                     else:
                         flexibility = 0
-
                     self.initial_generator_values[agent.aid] = flexibility
-
-                        agent.update_flexibility(
-                            t_start=self.time,
-                            min_p=0,
-                            max_p=math.floor(flexibility),
-                        )
+                    agent.update_flexibility(
+                        t_start=self.time,
+                        min_p=0,
+                        max_p=math.floor(flexibility),
+                    )
                 elif agent.elem_type == "load" and sensor_type == "p_mw":
                     self.rounded_load_values[agent.aid] = math.ceil(
                         sensor.sensor_value * self.factor_mw
