@@ -108,10 +108,7 @@ class WinzentMuscle(Muscle):
         for sensor, (sensor_type, agent) in zip(sensors, self.sensor_mapping):
             if agent is not None:
                 if agent.elem_type == "sgen" and sensor_type == "p_mw_flex":
-                    if sensor.in_service == True:
-                        flexibility = sensor.sensor_value * self.factor_mw
-                    else:
-                        flexibility = 0
+                    flexibility = sensor.sensor_value * self.factor_mw
                     self.initial_generator_values[agent.aid] = flexibility
                     agent.update_flexibility(
                         t_start=self.time,
@@ -119,6 +116,7 @@ class WinzentMuscle(Muscle):
                         max_p=math.floor(flexibility),
                     )
                 elif agent.elem_type == "load" and sensor_type == "p_mw":
+                    print(f"{agent.aid}: {sensor.sensor_value}")
                     self.rounded_load_values[agent.aid] = math.ceil(
                         sensor.sensor_value * self.factor_mw
                     )
@@ -262,7 +260,7 @@ class WinzentMuscle(Muscle):
                     actuator(value)
                     for key, value_list in self.winzent_mas.agent_types.items():
                         if agent.aid in value_list:
-                            logger.info(f"PRODUCED {self.final_solution[agent.aid]} {key} {value} {agent.aid}")
+                            print(f"PRODUCED {self.final_solution[agent.aid]} {key} {value} {agent.aid}")
                 else:
                     logger.debug("actuator set to zero")
                     actuator(0)
@@ -281,8 +279,6 @@ class WinzentMuscle(Muscle):
             self, sensors, actuators_available, is_terminal=False
     ):
         logger.info("Winzent next step running")
-        print(sensors)
-        print(actuators_available)
         grid_json = WinzentSensorActuatorUtil.get_grid_json_from_sensors(
             sensors
         )
