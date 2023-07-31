@@ -14,7 +14,7 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 logger = logging.getLogger(__name__)
 
 
-class WinzentAgentWithInfo(WinzentBaseAgent):
+class WinzentAgentWithInfo(WinzentSimpleEthicalAgent):
     def __init__(
             self,
             container,
@@ -184,6 +184,7 @@ class WinzentMAS:
             self._add_neighbors(agent, bus_agent)
 
     def _assign_ethics_score(self, name, index):
+        print(f"agent{index} is {name}")
         self._add_agent_types(name, index)
         ethics_values = list(self.ethics_score_config.keys())
         for value in ethics_values:
