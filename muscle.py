@@ -28,7 +28,6 @@ class WinzentMuscle(Muscle):
         self.send_message_paths = params.get("send_message_paths", True)
         self.request_processing_waiting_time = float(params.get("request_processing_waiting_time", 0.4))
         self.reply_processing_waiting_time = params.get("reply_processing_waiting_time", 0.4)
-        print(f"{self.reply_processing_waiting_time} and type {type(self.reply_processing_waiting_time)}")
         self.use_producer_ethics_score = params.get("use_producer_ethics_score", True)
         self.use_consumer_ethics_score = params.get("use_consumer_ethics_score", True)
 
