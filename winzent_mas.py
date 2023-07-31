@@ -49,7 +49,11 @@ class WinzentMAS:
     CONTAINER_ADDR = ("0.0.0.0", 5555)
 
     def __init__(
-            self, ttl, time_to_sleep, grid_json: str, send_message_paths: bool, ethics_score_config
+            self, ttl, time_to_sleep, grid_json: str, send_message_paths: bool, ethics_score_config,
+            use_consumer_ethics_score,
+            use_producer_ethics_score,
+            request_processing_waiting_time,
+            reply_processing_waiting_time,
     ) -> None:
         self.send_message_paths = send_message_paths
         self.ethics_score_config = ethics_score_config
@@ -66,6 +70,10 @@ class WinzentMAS:
         self.graph = nx.DiGraph()
         self.agent_types = {}
         self.index_zero_counter = 0
+        self.use_consumer_ethics_score = use_consumer_ethics_score,
+        self.use_producer_ethics_score = use_producer_ethics_score,
+        self.request_processing_waiting_time = request_processing_waiting_time,
+        self.reply_processing_waiting_time = reply_processing_waiting_time,
         self.set_agent_types()
 
     async def create_winzent_agents(self):
@@ -123,7 +131,11 @@ class WinzentMAS:
             ttl=self.ttl,
             time_to_sleep=self.time_to_sleep,
             send_message_paths=self.send_message_paths,
-            ethics_score=self._assign_ethics_score(self._net[elem_type].at[index, "name"], index)
+            ethics_score=self._assign_ethics_score(self._net[elem_type].at[index, "name"], index),
+            use_consumer_ethics_score=self.use_consumer_ethics_score,
+            use_producer_ethics_score=self.use_producer_ethics_score,
+            request_processing_waiting_time=self.request_processing_waiting_time,
+            reply_processing_waiting_time=self.reply_processing_waiting_time,
         )
 
     def _get_connected_buses(self, net, elem_type, index):
