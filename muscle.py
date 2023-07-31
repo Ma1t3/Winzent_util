@@ -116,7 +116,7 @@ class WinzentMuscle(Muscle):
                         max_p=math.floor(flexibility),
                     )
                 elif agent.elem_type == "load" and sensor_type == "p_mw":
-                    print(f"{agent.aid}: {sensor.sensor_value}")
+                    # print(f"{agent.aid}: {sensor.sensor_value}")
                     self.rounded_load_values[agent.aid] = math.ceil(
                         sensor.sensor_value * self.factor_mw
                     )
