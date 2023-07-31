@@ -70,10 +70,10 @@ class WinzentMAS:
         self.graph = nx.DiGraph()
         self.agent_types = {}
         self.index_zero_counter = 0
-        self.use_consumer_ethics_score = use_consumer_ethics_score,
-        self.use_producer_ethics_score = use_producer_ethics_score,
-        self.request_processing_waiting_time = request_processing_waiting_time,
-        self.reply_processing_waiting_time = reply_processing_waiting_time,
+        self.use_consumer_ethics_score = use_consumer_ethics_score
+        self.use_producer_ethics_score = use_producer_ethics_score
+        self.request_processing_waiting_time = request_processing_waiting_time
+        self.reply_processing_waiting_time = reply_processing_waiting_time
         self.set_agent_types()
 
     async def create_winzent_agents(self):
