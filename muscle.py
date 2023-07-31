@@ -26,6 +26,10 @@ class WinzentMuscle(Muscle):
         )
         self.ethics_score_config = params.get("ethics_score_config", None)
         self.send_message_paths = params.get("send_message_paths", True)
+        self.request_processing_waiting_time = params.get("request_processing_waiting_time", 0.4)
+        self.reply_processing_waiting_time = params.get("reply_processing_waiting_time", 0.4)
+        self.use_producer_ethics_score = params.get("use_producer_ethics_score", True)
+        self.use_consumer_ethics_score = params.get("use_consumer_ethics_score", True)
 
         self.decay_rate = 0
         self.sub_tier_size = 0
@@ -292,7 +296,11 @@ class WinzentMuscle(Muscle):
                     time_to_sleep=self.time_to_sleep,
                     grid_json=grid_json,
                     send_message_paths=self.send_message_paths,
-                    ethics_score_config = self.ethics_score_config
+                    ethics_score_config = self.ethics_score_config,
+                    use_consumer_ethics_score=self.use_consumer_ethics_score,
+                    use_producer_ethics_score=self.use_producer_ethics_score,
+                    request_processing_waiting_time=self.request_processing_waiting_time,
+                    reply_processing_waiting_time=self.reply_processing_waiting_time,
                 )
                 await self.winzent_mas.create_winzent_agents()
                 self.winzent_mas.build_topology()

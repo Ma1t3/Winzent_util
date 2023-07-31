@@ -23,13 +23,21 @@ class WinzentAgentWithInfo(WinzentSimpleEthicalAgent):
             ttl,
             time_to_sleep,
             send_message_paths,
-            ethics_score
+            ethics_score,
+            use_consumer_ethics_score,
+            use_producer_ethics_score,
+            request_processing_waiting_time,
+            reply_processing_waiting_time,
     ):
         super().__init__(
             container,
             ttl=ttl,
             time_to_sleep=time_to_sleep,
             send_message_paths=send_message_paths,
+            use_consumer_ethics_score=use_consumer_ethics_score,
+            use_producer_ethics_score=use_producer_ethics_score,
+            request_processing_waiting_time=request_processing_waiting_time,
+            reply_processing_waiting_time=reply_processing_waiting_time,
         )
         self.elem_type = elem_type
         self.index = index
