@@ -9,6 +9,7 @@ from palaestrai.agent import Muscle, SensorInformation, ActuatorInformation
 
 from .winzent_mas import WinzentMAS
 from .winzent_util import WinzentSensorActuatorUtil
+from mango_library.negotiation.winzent.winzent_base_agent import WinzentBaseAgent
 
 logger = logging.getLogger(__name__)
 
