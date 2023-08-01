@@ -14,36 +14,6 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 logger = logging.getLogger(__name__)
 
 
-class WinzentAgentWithInfo(WinzentSimpleEthicalAgent):
-    def __init__(
-            self,
-            container,
-            elem_type,
-            index,
-            ttl,
-            time_to_sleep,
-            send_message_paths,
-            ethics_score,
-            use_consumer_ethics_score,
-            use_producer_ethics_score,
-            request_processing_waiting_time,
-            reply_processing_waiting_time,
-    ):
-        super().__init__(
-            container,
-            ttl=ttl,
-            time_to_sleep=time_to_sleep,
-            send_message_paths=send_message_paths,
-            use_consumer_ethics_score=use_consumer_ethics_score,
-            use_producer_ethics_score=use_producer_ethics_score,
-            request_processing_waiting_time=request_processing_waiting_time,
-            reply_processing_waiting_time=reply_processing_waiting_time,
-        )
-        self.elem_type = elem_type
-        self.index = index
-        self.ethics_score = ethics_score
-
-
 class WinzentMAS:
     ELEMENT_TYPES_WITH_AGENTS = ["sgen", "load", "ext_grid", "bus"]
     CONTAINER_ADDR = ("0.0.0.0", 5555)
@@ -66,7 +36,7 @@ class WinzentMAS:
         self.ttl = ttl
         self.time_to_sleep = time_to_sleep
         # agent_id: winzent_agent
-        self.aid_agent_mapping: Dict[str, WinzentAgentWithInfo] = {}
+        self.aid_agent_mapping: Dict[str, WinzentBaseAgent] = {}
         self.graph = nx.DiGraph()
         self.agent_types = {}
         self.index_zero_counter = 0
@@ -117,26 +87,36 @@ class WinzentMAS:
                 await agent.shutdown()
         await self._container.shutdown()
 
-    def get_agent(self, elem_type, index) -> Optional[WinzentAgentWithInfo]:
+    def get_agent(self, elem_type, index) -> Optional[WinzentBaseAgent]:
         if elem_type in self.winzent_agents:
             if index in self.winzent_agents[elem_type]:
                 return self.winzent_agents[elem_type][index]
         return None
 
     def _create_agent(self, elem_type, index):
-        return WinzentAgentWithInfo(
-            container=self._container,
-            elem_type=elem_type,
-            index=index,
-            ttl=self.ttl,
-            time_to_sleep=self.time_to_sleep,
-            send_message_paths=self.send_message_paths,
-            ethics_score=self._assign_ethics_score(self._net[elem_type].at[index, "name"], index),
-            use_consumer_ethics_score=self.use_consumer_ethics_score,
-            use_producer_ethics_score=self.use_producer_ethics_score,
-            request_processing_waiting_time=self.request_processing_waiting_time,
-            reply_processing_waiting_time=self.reply_processing_waiting_time,
-        )
+        if not self.use_consumer_ethics_score and not self.use_producer_ethics_score:
+            return WinzentBaseAgent(
+                container=self._container,
+                elem_type=elem_type,
+                index=index,
+                ttl=self.ttl,
+                time_to_sleep=self.time_to_sleep,
+                send_message_paths=self.send_message_paths,
+                ethics_score=self._assign_ethics_score(self._net[elem_type].at[index, "name"], index),)
+        else:
+            return WinzentSimpleEthicalAgent(
+                container=self._container,
+                elem_type=elem_type,
+                index=index,
+                ttl=self.ttl,
+                time_to_sleep=self.time_to_sleep,
+                send_message_paths=self.send_message_paths,
+                ethics_score=self._assign_ethics_score(self._net[elem_type].at[index, "name"], index),
+                use_consumer_ethics_score=self.use_consumer_ethics_score,
+                use_producer_ethics_score=self.use_producer_ethics_score,
+                request_processing_waiting_time=self.request_processing_waiting_time,
+                reply_processing_waiting_time=self.reply_processing_waiting_time,
+            )
 
     def _get_connected_buses(self, net, elem_type, index):
         if elem_type == "bus":
