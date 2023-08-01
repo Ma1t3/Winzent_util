@@ -7,7 +7,7 @@ from typing import Optional, Dict, List, Tuple
 import nest_asyncio
 from palaestrai.agent import Muscle, SensorInformation, ActuatorInformation
 
-from .winzent_mas import WinzentMAS, WinzentAgentWithInfo
+from .winzent_mas import WinzentMAS
 from .winzent_util import WinzentSensorActuatorUtil
 
 logger = logging.getLogger(__name__)
@@ -41,11 +41,11 @@ class WinzentMuscle(Muscle):
         self.winzent_mas: Optional[WinzentMAS] = None
         # mapping: sensor list to (type, agent)
         self.sensor_mapping: List[
-            Tuple[str, Optional[WinzentAgentWithInfo]]
+            Tuple[str, Optional[WinzentBaseAgent]]
         ] = []
         # mapping: actuator list to (type, agent)
         self.actuator_mapping: List[
-            Tuple[str, Optional[WinzentAgentWithInfo]]
+            Tuple[str, Optional[WinzentBaseAgent]]
         ] = []
 
         # To get solution to the actuators
