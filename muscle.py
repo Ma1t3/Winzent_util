@@ -166,7 +166,7 @@ class WinzentMuscle(Muscle):
         while len(agents_with_started_negotiation) > 0:
             agent = agents_with_started_negotiation.pop(0)
             try:
-                await asyncio.wait_for(agent.negotiation_done, timeout=agent.time_to_sleep * 2)
+                await asyncio.wait_for(agent.negotiation_done, timeout=agent.time_to_sleep * 3)
                 logger.debug(f"{agent.aid} negotiation done")
                 # restart unsuccessful negotiations
                 # only allow a restricted number of restarts

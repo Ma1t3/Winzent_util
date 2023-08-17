@@ -8,7 +8,7 @@ import networkx as nx
 import pandapower as pp
 from mango.core.container import Container
 from mango_library.negotiation.winzent.winzent_base_agent import WinzentBaseAgent
-from mango_library.negotiation.winzent.winzent_simple_ethical_agent import WinzentSimpleEthicalAgent
+from mango_library.negotiation.winzent.winzent_ethical_agent import WinzentEthicalAgent
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 logger = logging.getLogger(__name__)
