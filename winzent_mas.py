@@ -75,10 +75,10 @@ class WinzentMAS:
         for value_list in self.ethics_score_config.values():
             type_list.extend(value_list)
         self.agent_types = {key: [] for key in type_list}
-        del self.agent_types['']
-        del self.agent_types['Klinikum']
-        del self.agent_types['Households']
-        self.agent_types['gas'] = []
+        # del self.agent_types['']
+        # del self.agent_types['Klinikum']
+        # del self.agent_types['Households']
+        # self.agent_types['gas'] = []
 
     async def shutdown(self):
         for elem_type in WinzentMAS.ELEMENT_TYPES_WITH_AGENTS:
