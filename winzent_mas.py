@@ -104,7 +104,7 @@ class WinzentMAS:
                 send_message_paths=self.send_message_paths,
                 ethics_score=self._assign_ethics_score(self._net[elem_type].at[index, "name"], index),)
         else:
-            return WinzentSimpleEthicalAgent(
+            return WinzentEthicalAgent(
                 container=self._container,
                 elem_type=elem_type,
                 index=index,
