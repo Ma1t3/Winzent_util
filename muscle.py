@@ -397,8 +397,9 @@ class WinzentMuscle(Muscle):
         )
 
     def save_ethics_score_development(self, ethics_score_list, agent, success):
+        print(f"save ethics score from {agent.aid}")
         ethics_score_tiers = list(ethics_score_list.keys())
-        if success == False and agent.ethics_score >= 3.0:
+        if success == False and agent.ethics_score >= ethics_score_tiers[0]:
             logger.info(f"{agent.aid}: High priority target not supplied.\n Solution is {agent.result} and target supply is {self.rounded_load_values[agent.aid]}")
         for tier in ethics_score_tiers:
             if tier <= agent.ethics_score < tier + 1.0:
